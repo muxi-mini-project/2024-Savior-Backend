@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/jordan-wright/email"
 	"log"
-	"miniproject/app/common/commonstruct"
 	"miniproject/app/common/tool"
+	"miniproject/app/model"
 	"miniproject/app/service/signup"
 	"net/smtp"
 )
@@ -33,8 +33,8 @@ func Send(usermail string) {
 	em.Text = code
 	//将验证码和email都存入redis中
 	code1 := string(code)
-	signup.Savecode(commonstruct.Client, usermail, code1)
-	commonstruct.Code = signup.Getcode(commonstruct.Client, usermail)
+	signup.Savecode(model.Client, usermail, code1)
+	model.Code = signup.Getcode(model.Client, usermail)
 	//设置服务器相关的配置
 	err = em.Send("smtp.qq.com:25", smtp.PlainAuth("", "发送者@qq.com", "授权码", "smtp.qq.com"))
 	if err != nil {

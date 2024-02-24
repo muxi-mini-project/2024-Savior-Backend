@@ -40,16 +40,25 @@ func CORSMiddleware() gin.HandlerFunc {
 func Jwtcheck(r *gin.Engine) {
 	r.Use(func(c *gin.Context) {
 		//不用验证的部分
-		if c.Request.URL.Path == "/saveplanets/signup/getcode" {
+		if c.Request.URL.Path == "/signup/sendcode" {
 			return
 		}
-		if c.Request.URL.Path == "/saveplanets/signup" {
+		if c.Request.URL.Path == "/signup" {
 			return
 		}
-		if c.Request.URL.Path == "/saveplanets/signup/password" {
+		if c.Request.URL.Path == "/signup/getpassword" {
 			return
 		}
-		if c.Request.URL.Path == "/saveplanets/login" {
+		if c.Request.URL.Path == "/login" {
+			return
+		}
+		if c.Request.URL.Path == "/login/regettestcode" {
+			return
+		}
+		if c.Request.URL.Path == "/login/next" {
+			return
+		}
+		if c.Request.URL.Path == "/login/resetpassword" {
 			return
 		}
 		//验证的部分

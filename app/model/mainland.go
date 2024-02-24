@@ -1,16 +1,17 @@
 package model
 
+import "time"
+
 type Mainland struct {
-	Name         string
-	Image        string
-	Stageimage   string
+	Name  string
+	Image string
+	/*	Stageimage   string*/
 	Status       bool    //注意默认的是全不未解锁
 	Allproduct   float64 //暂无
 	Allcleanrate float64 //暂无
-	Price        int
 	Climate      string
 	Terrian      string
-	Others       string //暂无
+	Others       string
 	Planetname   string
 	Successclean float64
 	Username     string
@@ -24,37 +25,122 @@ func Initialmainlands(username string, planetname string) {
 		Mainlands[i].Status = false
 		Mainlands[i].Username = username
 		Mainlands[i].Planetname = planetname
-		Mainlands[i].Stageimage = Stateimages[i*3]
+		/*	Mainlands[i].Stageimage = Stateimages[i*3]*/
 	}
 	//第一个
 	Mainlands[0].Name = "西伦瑞亚" //初始化5个大洲的称号，气候，地形
 	Mainlands[0].Climate = "热带雨林气候"
 	Mainlands[0].Terrian = "森林"
-	Mainlands[0].Successclean = 10
+	Mainlands[0].Others = "暂无" //等资料
+	Mainlands[0].Status = true
+	Mainlands[0].Successclean = 5
+	Mainlands[0].Allproduct = 0
+	Mainlands[0].Allcleanrate = 0
 	//第二个
 	Mainlands[1].Name = "米尔勒拉"
 	Mainlands[1].Climate = "高原山地气候"
 	Mainlands[1].Terrian = "山地，丘陵"
-	Mainlands[1].Price = 10
-	Mainlands[1].Successclean = 20
+	Mainlands[1].Others = "暂无" //等资料
+	Mainlands[1].Successclean = 5
+	Mainlands[1].Allproduct = 0
+	Mainlands[1].Allcleanrate = 0
 	//第三个
 	Mainlands[2].Name = "乌兰宇蒂"
 	Mainlands[2].Climate = "热带草原气候"
 	Mainlands[2].Terrian = "草原"
-	Mainlands[2].Price = 20
-	Mainlands[2].Successclean = 30
+	Mainlands[2].Others = "暂无" //等资料
+	Mainlands[2].Successclean = 10
+	Mainlands[2].Allproduct = 0
+	Mainlands[2].Allcleanrate = 0
 	//第四个
 	Mainlands[3].Name = "碦拉玛干"
 	Mainlands[3].Climate = "热带沙漠气候"
 	Mainlands[3].Terrian = "沙漠"
-	Mainlands[3].Price = 30
-	Mainlands[3].Successclean = 40
+	Mainlands[3].Others = "暂无" //等资料
+	Mainlands[3].Successclean = 10
+	Mainlands[3].Allproduct = 0
+	Mainlands[3].Allcleanrate = 0
 	//第五个
 	Mainlands[4].Name = "云格雷诺"
 	Mainlands[4].Climate = "极地气候"
 	Mainlands[4].Terrian = "冰川"
-	Mainlands[4].Price = 40
-	Mainlands[4].Successclean = 50
+	Mainlands[4].Others = "暂无" //等资料
+	Mainlands[4].Successclean = 20
+	Mainlands[4].Allproduct = 0
+	Mainlands[4].Allcleanrate = 0
+}
+
+// 将大陆信息存入数据库中
+func Createmainlands(user User, planetname string) {
+	Initialmainlands(user.Name, planetname)
+	DB.Create(Mainlands)
+}
+
+// 计算产率和产量+解锁
+func Mainlandenergy(user User, planetname string, mainlandname string) {
+	var a [5]Animinal
+	var b [3]Plant
+	var e [4]Badbuilding
+	var f [4]Goodbuilding
+	var c Mainland
+	// 创建一个每隔一天执行一次的定时器
+	ticker := time.NewTicker(24 * time.Hour)
+	// 启动一个 goroutine 来执行定时任务
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				var i int
+				DB.Where("name = ? AND username = ? AND planetname = ?", mainlandname, user.Name, planetname).Find(&c)
+				DB.Where("username=? AND planetname = ? AND mainlandname = ?", user.Name, planetname, mainlandname).Find(&a)
+				DB.Where("username=? AND planetname = ? AND mainlandname = ?", user.Name, planetname, mainlandname).Find(&b)
+				DB.Where("username=? AND planetname = ? AND mainlandname = ?", user.Name, planetname, mainlandname).Find(&e)
+				DB.Where("username=? AND planetname = ? AND mainlandname = ?", user.Name, planetname, mainlandname).Find(&f)
+				for i = 0; i < 5; i++ {
+					c.Allproduct = c.Allproduct + a[i].Production*float64(a[i].Number)
+				}
+				for i = 0; i < 3; i++ {
+					c.Allproduct = c.Allproduct + b[i].Production*float64(b[i].Number)
+				}
+				for i = 0; i < 4; i++ {
+					c.Allproduct = c.Allproduct - e[i].Pollution*float64(e[i].Number) + f[i].Production*float64(f[i].Number)
+				}
+				c.Allcleanrate = c.Allproduct / c.Successclean
+				if c.Allcleanrate >= 1 {
+					var g Mainland
+					switch c.Name {
+					case "西伦瑞亚":
+						{
+							DB.Where("name = ? AND username = ? AND planetname = ?", "米尔勒拉", user.Name, planetname).Find(&g)
+							g.Status = true
+							DB.Save(g)
+						}
+					case "米尔勒拉":
+						{
+							DB.Where("name = ? AND username = ? AND planetname = ?", "乌兰宇蒂", user.Name, planetname).Find(&g)
+							g.Status = true
+							DB.Save(g)
+						}
+					case "乌兰宇蒂":
+						{
+							DB.Where("name = ? AND username = ? AND planetname = ?", "碦拉玛干", user.Name, planetname).Find(&g)
+							g.Status = true
+							DB.Save(g)
+						}
+					case "碦拉玛干":
+						{
+							DB.Where("name = ? AND username = ? AND planetname = ?", "云格雷诺", user.Name, planetname).Find(&g)
+							g.Status = true
+							DB.Save(g)
+						}
+					}
+				}
+			}
+		}
+	}()
+	// 阻塞主 goroutine，使程序持续运行
+	select {}
+
 }
 
 /*// 初始大陆(badbuilding)

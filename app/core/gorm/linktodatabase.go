@@ -16,13 +16,9 @@ func Linktodatabase() *gorm.DB {
 }
 
 func Migrate(db *gorm.DB) {
-	db.AutoMigrate(&model.User{}, &model.Planet{})
-	db.AutoMigrate(&model.Planet{}, &model.Mainland{})
-	db.AutoMigrate(&model.Mainland{}, &model.Plant{})
-	db.AutoMigrate(&model.Mainland{}, &model.Goodbuilding{})
-	db.AutoMigrate(&model.Mainland{}, &model.Badbuilding{})
-	db.AutoMigrate(&model.Mainland{}, &model.Animinal{})
-	db.AutoMigrate(&model.Mainland{}, &model.Report{})
+	db.AutoMigrate(&model.User{})
+	db.AutoMigrate(&model.Planet{})
+	db.AutoMigrate(&model.Mainland{})
 	db.AutoMigrate(&model.Animinal{})
 	db.AutoMigrate(&model.Plant{})
 	db.AutoMigrate(&model.Goodbuilding{})

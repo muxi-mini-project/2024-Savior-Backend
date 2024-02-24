@@ -1,31 +1,83 @@
 package model
 
+import (
+	"time"
+)
+
 type Planet struct {
-	Name       string
-	Image      string
+	Name string
+	/*	Image      string*/
 	Allenergy  float64
 	Restenergy float64
 	Username   string //`gorm:"size:255"`
 }
 
 // 初始化一个星球
-func (planet *Planet) Initializeplanet(planetimage string, planetname string, username string) {
-	planet.Username = username
-	planet.Image = planetimage
+func (planet *Planet) Initializeplanet( /*planetimage string,*/ user User, planetname string) {
+	planet.Username = user.Name
+	/*planet.Image = planetimage*/
 	planet.Name = planetname
 	planet.Allenergy = 1
 	planet.Restenergy = planet.Allenergy
 }
 
-func (planet *Planet) Planetenergy(mainlands [5]Mainland) {
-	var i int
-	for i = 0; i < 5; i++ {
-		if mainlands[i].Status == true {
-			planet.Restenergy = planet.Restenergy + mainlands[i].Allproduct
-			planet.Allenergy = planet.Allenergy + mainlands[i].Allproduct
-		}
-	}
+// 创建新星球
+func Createplanet( /*planetimage string,*/ planetname string, user User) {
+	var planet Planet
+	planet.Initializeplanet( /*planetimage, */ user, planetname)
+	DB.Create(&planet)
+}
 
+// 删除星球
+func Deleteplanet(username string, planetname string) {
+	var planet Planet
+	var mainland Mainland
+	var animinal Animinal
+	var goodbuilding Goodbuilding
+	var badbuilding Badbuilding
+	var plant Plant
+	DB.Where("name=? AND username=? ", planetname, username).Delete(&planet)
+	DB.Where("planetname=? AND username=? ", planetname, username).Delete(&mainland)
+	DB.Where("planetname=? AND username=? ", planetname, username).Delete(&animinal)
+	DB.Where("planetname=? AND username=? ", planetname, username).Delete(&goodbuilding)
+	DB.Where("planetname=? AND username=? ", planetname, username).Delete(&badbuilding)
+	DB.Where("planetname=? AND username=? ", planetname, username).Delete(&plant)
+}
+
+// 计算能量值,每隔一天加一定的能量值
+func Planetenergy(planetname string, user User) {
+	var a Planet
+	var b Mainland
+	// 创建一个每隔一天执行一次的定时器
+	ticker := time.NewTicker(24 * time.Hour)
+	// 启动一个 goroutine 来执行定时任务
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				// 每隔一天执行一次增加数据的操作
+				DB.Where("name=? AND username=? ", user.Name, planetname).Find(a)
+				DB.Where("name=? AND username=? AND planetname=? AND Status = true", "西伦瑞亚", user.Name, planetname).Find(b)
+				a.Allenergy = b.Allproduct + a.Allenergy
+				a.Restenergy = a.Restenergy + b.Allproduct
+				DB.Where("name=? AND username=? AND planetname=? AND Status = true", "米尔勒拉", user.Name, planetname).Find(b)
+				a.Allenergy = b.Allproduct + a.Allenergy
+				a.Restenergy = a.Restenergy + b.Allproduct
+				DB.Where("name=? AND username=? AND planetname=? AND Status = true", "乌兰宇蒂", user.Name, planetname).Find(b)
+				a.Allenergy = b.Allproduct + a.Allenergy
+				a.Restenergy = a.Restenergy + b.Allproduct
+				DB.Where("name=? AND username=? AND planetname=? AND Status = true", "碦拉玛干", user.Name, planetname).Find(b)
+				a.Allenergy = b.Allproduct + a.Allenergy
+				a.Restenergy = a.Restenergy + b.Allproduct
+				DB.Where("name=? AND username=? AND planetname=? AND Status = true", "云格雷诺", user.Name, planetname).Find(b)
+				a.Allenergy = b.Allproduct + a.Allenergy
+				a.Restenergy = a.Restenergy + b.Allproduct
+				DB.Save(a)
+			}
+		}
+	}()
+	// 阻塞主 goroutine，使程序持续运行
+	select {}
 }
 
 // 初始化一个星球
